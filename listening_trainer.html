@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="リスニング特訓">
+<title>音変化リスニング特訓 — つなぎ・弱音・消える音</title>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --border: #e0ddd4;
+    --border-strong: #c9c5b8;
+    --text: #2c2c2a;
+    --text-secondary: #6b6a64;
+    --text-tertiary: #9b9a92;
+    --accent-link: #534ab7;
+    --accent-link-bg: rgba(127,119,221,0.18);
+    --accent-weak: #0f6e56;
+    --accent-weak-bg: rgba(29,158,117,0.18);
+    --accent-elision: #993c1d;
+    --accent-elision-bg: rgba(216,90,48,0.18);
+    --success: #3b6d11;
+    --success-bg: #eaf3de;
+    --danger: #a32d2d;
+    --danger-bg: #fcebeb;
+    --warning: #854f0b;
+    --warning-bg: #faeeda;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding-bottom: 2rem;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1rem 1rem 2rem;
+  }
+
+  header {
+    padding: 1rem 0 0.5rem;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .statusbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .stat-pill .val {
+    font-size: 15px;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  .stat-pill .label {
+    color: var(--text-secondary);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+  }
+  button:hover { background: #f0eee7; }
+  button:active { transform: scale(0.98); }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  select {
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    padding: 8px 10px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .panel-secondary {
+    background: #efece3;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .banner {
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .banner-warning { background: var(--warning-bg); color: var(--warning); }
+  .banner-danger { background: var(--danger-bg); color: var(--danger); }
+  .banner button { font-size: 12px; padding: 2px 10px; }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .choices {
+    display: grid;
+    gap: 8px;
+  }
+  .choices button {
+    text-align: left;
+    padding: 12px 14px;
+    line-height: 1.5;
+  }
+  .choices button.correct {
+    border-color: var(--success);
+    background: var(--success-bg);
+  }
+  .choices button.incorrect {
+    border-color: var(--danger);
+    background: var(--danger-bg);
+  }
+
+  #feedback {
+    margin-top: 12px;
+    font-size: 14px;
+    min-height: 1.5em;
+  }
+  #feedback .ok { color: var(--success); }
+  #feedback .ng { color: var(--danger); }
+
+  .explain-card {
+    display: none;
+  }
+  .explain-card .sentence {
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .explain-card .kana {
+    font-size: 13px;
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+  }
+  .explain-card .ja {
+    font-size: 14px;
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+  }
+  .notes { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .note-item {
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .note-item strong { font-weight: 500; }
+  .note-link { background: var(--accent-link-bg); }
+  .note-weak { background: var(--accent-weak-bg); }
+  .note-elision { background: var(--accent-elision-bg); }
+
+  .mark-link { background: var(--accent-link-bg); color: var(--text); padding: 1px 3px; border-radius: 4px; }
+  .mark-weak { background: var(--accent-weak-bg); color: var(--text); padding: 1px 3px; border-radius: 4px; }
+  .mark-elision { background: var(--accent-elision-bg); color: var(--text); padding: 1px 3px; border-radius: 4px; }
+
+  .score-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+  .score-item { text-align: center; }
+  .score-item .label { font-size: 13px; color: var(--text-secondary); margin: 0; }
+  .score-item .num { font-size: 20px; font-weight: 500; margin: 2px 0 0; }
+
+  .footer-row {
+    text-align: center;
+    margin-top: 2rem;
+  }
+  .footer-row button {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>音変化リスニング特訓</h1>
+    <p>①つなぎ ②弱音 ③消える音 を聞き分ける</p>
+  </header>
+
+  <div class="statusbar">
+    <div class="stat-pill"><span class="label">レベル</span><span class="val" id="levelLabel"></span></div>
+    <div class="stat-pill"><span class="label">連続正解</span><span class="val" id="streak">0</span></div>
+    <button id="weakbtn" class="icon-btn" style="margin-left:auto;">弱点分析</button>
+  </div>
+
+  <div id="weakPanel" class="panel-secondary" style="display:none;">
+    <p style="font-weight:500; margin:0 0 8px; color:var(--text);">弱点分析</p>
+    <div id="weakContent"></div>
+    <button id="drillbtn" class="icon-btn" style="margin-top:10px;">猛特訓モードで弱点を集中練習</button>
+  </div>
+
+  <div id="drillBanner" class="banner banner-warning" style="display:none;">
+    <span>猛特訓モード中</span>
+    <button id="exitDrill">通常モードに戻る</button>
+  </div>
+
+  <div id="retryBanner" class="banner banner-danger" style="display:none;">
+    同じレベルの新しい問題です。正解するまで続きます。
+  </div>
+
+  <div id="intro" class="panel-secondary"></div>
+
+  <div class="controls-row">
+    <button id="playbtn" class="icon-btn">▶ 再生</button>
+    <label style="font-size:13px; color:var(--text-secondary);">速度</label>
+    <select id="speed">
+      <option value="1">ノーマル</option>
+      <option value="0.7">ゆっくり</option>
+      <option value="0.5">超ゆっくり</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <p style="font-size:13px; color:var(--text-secondary); margin:0 0 8px;">この音は何と聞こえましたか?選んでください</p>
+    <div id="choices" class="choices"></div>
+    <div id="feedback"></div>
+  </div>
+
+  <div id="explainCard" class="panel-secondary explain-card">
+    <p class="sentence" id="explainSentence"></p>
+    <p class="kana" id="explainKana"></p>
+    <p class="ja" id="explainJa"></p>
+    <div class="notes" id="explainNotes"></div>
+    <button id="nextbtn" class="icon-btn">次へ →</button>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item"><p class="label">正解</p><p class="num" id="score">0</p></div>
+    <div class="score-item"><p class="label">挑戦</p><p class="num" id="total">0</p></div>
+    <div class="score-item"><p class="label">このレベルの問題数</p><p class="num" id="bankSize">0</p></div>
+  </div>
+
+  <div class="footer-row">
+    <button id="resetbtn">進捗をリセットする</button>
+  </div>
+</div>
+
+<script>
+const LEVELS = ['中1〜中2','中3〜高1','高2','高3標準','共通テスト/英検準1級'];
+
+const bank = [
+{level:1, cat:'link', full:"What are you doing?", ja:"何をしているの?", spoken:"ワッチャ ドゥーイン", choices:["What are you doing?","What you doing?","What you're doing?"], answer:0,
+ markers:[{type:'link', text:'are you', note:"areの母音と次のyouのyが融合して「ワッチャ」のように聞こえます。areとyouが一塊になる典型的なつなぎです。"}]},
+{level:1, cat:'weak', full:"I'd like a cup of tea.", ja:"お茶を一杯いただきたいです。", spoken:"アイドゥ ライカ カパ ティー", choices:["I'd like a cup of tea.","I'd like a cup off tea.","I'd like a cop of tea."], answer:0,
+ markers:[{type:'weak', text:'of', note:"ofは弱形で「ə」とほぼ聞こえなくなります。a cup of teaが「ア カパ ティー」のように一気に発音されます。"}]},
+{level:1, cat:'link', full:"Nice to meet you.", ja:"初めまして。", spoken:"ナイス トゥ ミーチュー", choices:["Nice to meet you.","Nice to meet to.","Nice to meet through."], answer:0,
+ markers:[{type:'link', text:'meet you', note:"meet youのt+yはpalatalizationにより「チュー」のような音に変化します。"}]},
+{level:1, cat:'elision', full:"I don't know.", ja:"知りません。", spoken:"アイ ドゥノウ", choices:["I don't know.","I didn't know.","I don't go."], answer:0,
+ markers:[{type:'elision', text:"don't", note:"don'tの最後のtはnの後で脱落し、ほぼ「ドン」となります。don't knowは「ドゥノウ」のように一語化します。"}]},
+{level:1, cat:'weak', full:"He can swim well.", ja:"彼は上手に泳げます。", spoken:"ヒー クン スウィム ウェル", choices:["He can swim well.","He can't swim well.","He came swim well."], answer:0,
+ markers:[{type:'weak', text:'can', note:"肯定文のcanは弱形で「kən」、強勢がほとんどなく一瞬で発音されます。"}]},
+{level:1, cat:'link', full:"Turn off the light.", ja:"電気を消してください。", spoken:"ターノフ ザ ライト", choices:["Turn off the light.","Turn of the light.","Turn often light."], answer:0,
+ markers:[{type:'link', text:'Turn off', note:"turn offのnとoffがつながり「ターノフ」のように一語化します。子音+母音の典型的なリンキングです。"}]},
+{level:1, cat:'weak', full:"There is a cat under the table.", ja:"テーブルの下に猫がいます。", spoken:"ゼァリザ キャット アンダ ザ テイブル", choices:["There is a cat under the table.","There was a cat under the table.","Their is a cat under the table."], answer:0,
+ markers:[{type:'weak', text:'There is a', note:"There isのisがつながり「ゼァリズ」、さらにa catとつながって「ゼァリザ キャット」のように聞こえます。"}]},
+{level:1, cat:'link', full:"Look at this picture.", ja:"この写真を見てください。", spoken:"ルッカッ ディス ピクチャ", choices:["Look at this picture.","Look that this picture.","Look it this picture."], answer:0,
+ markers:[{type:'link', text:'Look at', note:"子音kと母音aがつながり「ルッカッ」のように聞こえます。look atは超高頻度のリンキングです。"}]},
+{level:1, cat:'weak', full:"I want to play soccer.", ja:"サッカーをしたいです。", spoken:"アイ ワナ プレイ サッカー", choices:["I want to play soccer.","I won't play soccer.","I want a play soccer."], answer:0,
+ markers:[{type:'weak', text:'want to', note:"want toは非常に高頻度で「ワナ」に変化します。tの音が消えてto→naのように同化します。"}]},
+{level:1, cat:'link', full:"Can I borrow this pen?", ja:"このペンを借りてもいいですか?", spoken:"キャナイ ボロウ ディス ペン", choices:["Can I borrow this pen?","Can you borrow this pen?","Can I borrow this hen?"], answer:0,
+ markers:[{type:'link', text:'Can I', note:"Can Iのnとaの母音がつながり「キャナイ」のように一語化します。canの弱形+Iの典型的なリンキングです。"}]},
+{level:1, cat:'weak', full:"He is from Canada.", ja:"彼はカナダ出身です。", spoken:"ヒーズ フロム キャナダ", choices:["He is from Canada.","He was from Canada.","He has from Canada."], answer:0,
+ markers:[{type:'weak', text:'He is', note:"He isは「ヒーズ」のように縮約され、isがほとんど聞こえなくなります。be動詞の弱形は超高頻度です。"}]},
+{level:1, cat:'link', full:"Wait for me!", ja:"私を待って!", spoken:"ウェイト フォ ミー", choices:["Wait for me!","Wait for me too!","Weight for me!"], answer:0,
+ markers:[{type:'link', text:'for me', note:"forは弱形で「フォ」となり、meとつながって一塊で発音されます。"}]},
+{level:1, cat:'elision', full:"I like that café.", ja:"私はそのカフェが好きです。", spoken:"アイ ライ ダット カフェ", choices:["I like that café.","I liked that café.","I like at café."], answer:0,
+ markers:[{type:'elision', text:'like that', note:"likeの語末kの後にthatのthが続くと、kの音が弱まり「ライ ダット」のように聞こえます。"}]},
+{level:1, cat:'weak', full:"We are good friends.", ja:"私たちは仲の良い友達です。", spoken:"ウィア グッ フレンズ", choices:["We are good friends.","We were good friends.","We have good friends."], answer:0,
+ markers:[{type:'weak', text:'We are', note:"We areは「ウィア」のように一語化し、areはほとんど聞こえなくなります。"}]},
+{level:1, cat:'link', full:"This is an apple.", ja:"これはりんごです。", spoken:"ディスィズ アン アプル", choices:["This is an apple.","This was an apple.","These are an apple."], answer:0,
+ markers:[{type:'link', text:'This is an', note:"This isのsと母音i、isとanのsとaがそれぞれつながり「ディスィズ アン」のように一続きに聞こえます。"}]},
+{level:1, cat:'elision', full:"Stand up, please.", ja:"立ってください。", spoken:"スタンダップ プリーズ", choices:["Stand up, please.","Stand out, please.","Stand it up, please."], answer:0,
+ markers:[{type:'link', text:'Stand up', note:"Stand upのdとuがつながり「スタンダップ」のように一語化します。子音+母音の基本パターンです。"}]},
+{level:1, cat:'weak', full:"I was at home yesterday.", ja:"私は昨日家にいました。", spoken:"アイ ワズ アト ホーム イェスタデイ", choices:["I was at home yesterday.","I am at home yesterday.","I was an home yesterday."], answer:0,
+ markers:[{type:'weak', text:'was at', note:"wasは弱形で「ワズ」よりも軽く発音され、atも弱化してつながります。"}]},
+{level:1, cat:'link', full:"What do you have for breakfast?", ja:"朝食に何を食べますか?", spoken:"ワドゥヤ ハヴ フォ ブレックファスト", choices:["What do you have for breakfast?","What did you have for breakfast?","What do you have for lunch?"], answer:0,
+ markers:[{type:'weak', text:'do you', note:"What doは「ワドゥ」、do youは「ヤ」のように同化して「ワドゥヤ」となります。"}]},
+{level:1, cat:'elision', full:"Don't touch that.", ja:"それに触らないで。", spoken:"ドン タッチ ザット", choices:["Don't touch that.","Do touch that.","Don't watch that."], answer:0,
+ markers:[{type:'elision', text:"Don't touch", note:"don'tの語末tはtouchのtの前で脱落し、「ドン タッチ」のようにほぼ一拍で発音されます。"}]},
+{level:1, cat:'weak', full:"My brother and I like soccer.", ja:"私の弟と私はサッカーが好きです。", spoken:"マイ ブラザ ラン アイ ライク サッカー", choices:["My brother and I like soccer.","My brother and I liked soccer.","My brothers and I like soccer."], answer:0,
+ markers:[{type:'weak', text:'brother and', note:"andは弱形で「ン」のようにほぼ母音だけになり、brotherと次のIがつながって「ブラザ ラン アイ」のように聞こえます。"}]},
+{level:1, cat:'link', full:"She lives in Tokyo.", ja:"彼女は東京に住んでいます。", spoken:"シー リヴズィン トーキョー", choices:["She lives in Tokyo.","She lived in Tokyo.","She lives at Tokyo."], answer:0,
+ markers:[{type:'link', text:'lives in', note:"livesの語末sとinの母音iがつながり「リヴズィン」のように一語化します。"}]},
+{level:1, cat:'elision', full:"That's a good idea.", ja:"それは良い考えですね。", spoken:"ザッツァ グダイディア", choices:["That's a good idea.","That's good idea.","That was a good idea."], answer:0,
+ markers:[{type:'link', text:'good idea', note:"goodのdとideaのiがつながり「グダイディア」のように聞こえます。dとa/iの連結による弱化です。"}]},
+{level:1, cat:'weak', full:"He plays the piano for an hour.", ja:"彼は1時間ピアノを弾きます。", spoken:"ヒー プレイズ ザ ピアノ フォ ラン アワー", choices:["He plays the piano for an hour.","He played the piano for an hour.","He plays the piano for a hour."], answer:0,
+ markers:[{type:'weak', text:'for an', note:"forは弱形「fər」になり、an hourのanとつながって「フォラン」のように聞こえます。"}]},
+{level:1, cat:'link', full:"Get on the bus.", ja:"バスに乗ってください。", spoken:"ゲッ オン ザ バス", choices:["Get on the bus.","Get off the bus.","Get in the bus."], answer:0,
+ markers:[{type:'link', text:'Get on', note:"Getの語末tとonのoがつながり「ゲッオン」のように聞こえます。get on/offは頻出表現です。"}]},
+
+{level:2, cat:'link', full:"Did you eat lunch?", ja:"お昼ご飯は食べましたか?", spoken:"ディジュー イートゥ ランチ", choices:["Did you eat lunch?","Did she eat lunch?","Did he eat lunch?"], answer:0,
+ markers:[{type:'link', text:'Did you', note:"d + yの連続は「ジュ」という破擦音に変化します。Did youは「ディジュー」と一語のように聞こえます。"}]},
+{level:2, cat:'elision', full:"Most students study hard.", ja:"ほとんどの生徒は熱心に勉強します。", spoken:"モウス ステューデンツ", choices:["Most students study hard.","Most student study hard.","Most studios study hard."], answer:0,
+ markers:[{type:'elision', text:'Most students', note:"most studentsのtはstの前で脱落しやすく「モウス ステューデンツ」のように聞こえます。"}]},
+{level:2, cat:'weak', full:"I have to go now.", ja:"もう行かなければなりません。", spoken:"アイ ハフタ ゴー ナウ", choices:["I have to go now.","I had to go now.","I have a goal now."], answer:0,
+ markers:[{type:'weak', text:'have to', note:"have toは「ハフタ」のように音が変化し、haveのvが無声化してfの音になります。"}]},
+{level:2, cat:'link', full:"Could you help me out?", ja:"手伝ってもらえますか?", spoken:"クジュー ヘルプ ミー アウト", choices:["Could you help me out?","Could she help me out?","Could you help me about?"], answer:0,
+ markers:[{type:'link', text:'Could you', note:"d+yのpalatalizationで「クジュー」となります。Could youは依頼表現で非常に高頻度です。"}]},
+{level:2, cat:'weak', full:"She's been to Canada.", ja:"彼女はカナダに行ったことがあります。", spoken:"シーズ ビントゥ カナダ", choices:["She's been to Canada.","She's bin to Canada.","She's bend to Canada."], answer:0,
+ markers:[{type:'weak', text:'been to', note:"beenは弱形でbinに、toはtəに弱化。過去分詞のbeenが強形で発音されることはほぼありません。"}]},
+{level:2, cat:'elision', full:"Next time, call me.", ja:"次は私に電話してください。", spoken:"ネクスタイム コーミー", choices:["Next time, call me.","Nice time, call me.","Next time, call em."], answer:0,
+ markers:[{type:'elision', text:'Next time', note:"next timeのtは子音(t)に挟まれて脱落します。「ネクスタイム」のように聞こえます。"},
+          {type:'link', text:'call me', note:"call meのlとmが連結して「コーミー」のように聞こえます。"}]},
+{level:2, cat:'link', full:"I'm going to the park.", ja:"公園に行きます。", spoken:"アイム ゴーイントゥ ザ パーク", choices:["I'm going to the park.","I'm going through the park.","I'm going to the bark."], answer:0,
+ markers:[{type:'link', text:'going to the', note:"going toのtoとtheがなめらかにつながり「ゴーイントゥ ザ」のように一塊で聞こえます。"}]},
+{level:2, cat:'weak', full:"What time does the train leave?", ja:"電車は何時に出発しますか?", spoken:"ワッタイム ダズ ザ トレイン リーヴ", choices:["What time does the train leave?","What time does the train live?","What time is the train leave?"], answer:0,
+ markers:[{type:'weak', text:'does', note:"doesは弱形で「ダズ」よりも弱く、軽く発音されます。文中で強調されない助動詞の典型例です。"}]},
+{level:2, cat:'link', full:"What kind of music do you like?", ja:"どんな種類の音楽が好きですか?", spoken:"ワッ カインダヴ ミュージック ドゥヤ ライク", choices:["What kind of music do you like?","What kind of music did you like?","What kinds of music do you like?"], answer:0,
+ markers:[{type:'link', text:'kind of', note:"kindの語末dとofのoがつながり、ofも弱化して「カインダヴ」のように聞こえます。"},
+          {type:'weak', text:'do you', note:"do youは弱形で同化し「ドゥヤ」のようになります。"}]},
+{level:2, cat:'weak', full:"I was thinking about you.", ja:"あなたのことを考えていました。", spoken:"アイ ワズ シンキン アバウチュー", choices:["I was thinking about you.","I am thinking about you.","I was thinking of you."], answer:0,
+ markers:[{type:'weak', text:'was thinking', note:"wasは弱形で軽く発音され、thinkingのgはくだけた発音で「シンキン」のようになることがあります。"},
+          {type:'link', text:'about you', note:"about youのtとyouのyがつながりpalatalizationで「アバウチュー」のようになります。"}]},
+{level:2, cat:'elision', full:"I just got home.", ja:"今ちょうど帰宅しました。", spoken:"アイ ジャス ゴッ ホーム", choices:["I just got home.","I just go home.","I just got hone."], answer:0,
+ markers:[{type:'elision', text:'just got', note:"justの語末tはgotのgの前で脱落し「ジャス ゴッ」のように聞こえます。語末t/dの脱落の典型例です。"}]},
+{level:2, cat:'link', full:"Let's go to the museum.", ja:"美術館に行きましょう。", spoken:"レッツ ゴートゥ ザ ミュージアム", choices:["Let's go to the museum.","Let's go through the museum.","Let's go to a museum."], answer:0,
+ markers:[{type:'link', text:'go to the', note:"go toのoとtoのt、toとtheがそれぞれつながり「ゴートゥザ」のように一塊で聞こえます。"}]},
+{level:2, cat:'weak', full:"I think it's going to rain.", ja:"雨が降りそうだと思います。", spoken:"アイ シンキッツ ゴーイントゥ レイン", choices:["I think it's going to rain.","I thought it's going to rain.","I think it was going to rain."], answer:0,
+ markers:[{type:'link', text:"think it's", note:"thinkの語末kとit'sのiがつながり「シンキッツ」のように聞こえます。"},
+          {type:'weak', text:'going to', note:"going toは「ゴーイントゥ」のように一塊で発音されます。"}]},
+{level:2, cat:'elision', full:"What's wrong with your computer?", ja:"あなたのパソコンはどうしたのですか?", spoken:"ワッツ ロン ウィッチョ コンピュータ", choices:["What's wrong with your computer?","What's long with your computer?","What's wrong with you computer?"], answer:0,
+ markers:[{type:'elision', text:"What's wrong", note:"What'sの語末tはwrongのrの前でほぼ発音されず「ワッツ ロン」のように聞こえます。"},
+          {type:'link', text:'with your', note:"with yourはth音が弱まりyourと融合して「ウィッチョ」のようになります。"}]},
+{level:2, cat:'link', full:"He's an engineer at that company.", ja:"彼はその会社のエンジニアです。", spoken:"ヒーザン エンジニア アット ザット カンパニー", choices:["He's an engineer at that company.","He's a engineer at that company.","He's an engineer of that company."], answer:0,
+ markers:[{type:'link', text:"He's an", note:"He'sの語末zとanのaがつながり「ヒーザン」のように聞こえます。"}]},
+{level:2, cat:'weak', full:"There's nothing left in the fridge.", ja:"冷蔵庫には何も残っていません。", spoken:"ゼァズ ナッシン レフティン ザ フリッジ", choices:["There's nothing left in the fridge.","There was nothing left in the fridge.","There's nothing left on the fridge."], answer:0,
+ markers:[{type:'weak', text:"There's", note:"There'sは「ゼァズ」のように弱化し、isの音がほぼ消えます。"},
+          {type:'link', text:'left in', note:"leftの語末tとinのiがつながり「レフティン」のように聞こえます。"}]},
+{level:2, cat:'elision', full:"He left without saying goodbye.", ja:"彼はさよならも言わずに去りました。", spoken:"ヒー レフ ウィザウト セイイン グッバイ", choices:["He left without saying goodbye.","He left with saying goodbye.","He left without seeing goodbye."], answer:0,
+ markers:[{type:'elision', text:'left without', note:"leftの語末tはwithoutのwの前で脱落しやすく「レフ ウィザウト」のように聞こえます。"}]},
+{level:2, cat:'link', full:"I'll pick you up at the station.", ja:"駅であなたを車で迎えます。", spoken:"アイル ピッキュー アッタ ザ ステイション", choices:["I'll pick you up at the station.","I'll pick up you at the station.","I'll pick you up in the station."], answer:0,
+ markers:[{type:'link', text:'pick you up', note:"pickの語末kとyouのyがpalatalizationで「ピッキュー」となり、さらにupとつながります。"},
+          {type:'elision', text:'up at', note:"upのpとatのaがつながりつつ、atのtはフラップ化して「アッタ」のように聞こえます。"}]},
+{level:2, cat:'weak', full:"I'm afraid I can't make it tonight.", ja:"残念ながら今夜は行けません。", spoken:"アイム アフレイダイ キャン メイキッ トゥナイト", choices:["I'm afraid I can't make it tonight.","I'm afraid I can make it tonight.","I'm afraid I can't make a tonight."], answer:0,
+ markers:[{type:'link', text:'afraid I', note:"afraidの語末dとIの母音がつながり「アフレイダイ」のように聞こえます。"},
+          {type:'elision', text:"can't make", note:"can'tの語末tはmakeのmの前で開放されず「キャン メイ」のように聞こえ、肯定のcanと区別がつきにくくなります。"}]},
+{level:2, cat:'link', full:"Could I have a glass of water?", ja:"お水を一杯いただけますか?", spoken:"クダイ ハヴァ グラスァヴ ウォーター", choices:["Could I have a glass of water?","Could I have a glass for water?","Could you have a glass of water?"], answer:0,
+ markers:[{type:'link', text:'Could I', note:"Could Iのd+Iがつながり「クダイ」のように聞こえます。"},
+          {type:'weak', text:'glass of', note:"glassの語末sとofのoがつながり、ofは弱化して「グラスァヴ」のようになります。"}]},
+{level:2, cat:'elision', full:"We don't need to hurry.", ja:"急ぐ必要はありません。", spoken:"ウィ ドン ニードゥ ハリ", choices:["We don't need to hurry.","We didn't need to hurry.","We don't need a hurry."], answer:0,
+ markers:[{type:'elision', text:"don't need", note:"don'tの語末tはneedのnの前で脱落し「ドン ニード」のように聞こえます。"}]},
+{level:2, cat:'weak', full:"I'll be there in about ten minutes.", ja:"10分くらいで着きます。", spoken:"アイル ビ ゼァ リナバウト テン ミニッツ", choices:["I'll be there in about ten minutes.","I'll be there about ten minutes.","I'll be there in about ten minute."], answer:0,
+ markers:[{type:'link', text:'there in about', note:"thereのrとinのiがつながり「ゼァリン」、aboutも弱形でつながって一塊になります。"}]},
+{level:2, cat:'link', full:"Take off your shoes here.", ja:"ここで靴を脱いでください。", spoken:"テイコフ ヨ シューズ ヒア", choices:["Take off your shoes here.","Take off you shoes here.","Take of your shoes here."], answer:0,
+ markers:[{type:'link', text:'Take off', note:"Takeの語末kとoffのoがつながり「テイコフ」のように聞こえます。"}]},
+
+{level:3, cat:'weak', full:"There were a lot of people at the party.", ja:"パーティーには大勢の人がいました。", spoken:"ゼァワラ ラドゥ ピープル", choices:["There were a lot of people at the party.","There was a lot of people at the party.","Their were a lot of people at the party."], answer:0,
+ markers:[{type:'weak', text:'were a', note:"wereは弱形でwərとなり、a lot ofのofもəに弱化。全体が「ゼァワララドゥピープル」のように一塊で聞こえます。"}]},
+{level:3, cat:'elision', full:"What's the matter with you?", ja:"どうしたのですか?", spoken:"ワッツァ マラ ウィッチュー", choices:["What's the matter with you?","What's the mother with you?","What's a matter with shoe?"], answer:0,
+ markers:[{type:'elision', text:'matter', note:"アメリカ英語ではmatterのttはフラップ音(軽いrのような音)になり「マラ」のように聞こえます。"},
+          {type:'link', text:'with you', note:"with youはth音が弱まりwi-chuと融合します。"}]},
+{level:3, cat:'link', full:"I should have called you earlier.", ja:"もっと早くあなたに電話すべきでした。", spoken:"アイ シュダ コールジュー アーリア", choices:["I should have called you earlier.","I should call you earlier.","I shouldn't have called you earlier."], answer:0,
+ markers:[{type:'weak', text:'should have', note:"should haveは「シュダ」のように縮約され、haveはほとんど聞こえません。"},
+          {type:'link', text:'called you', note:"called youのd+yはジュに変化し「コールジュー」のようになります。"}]},
+{level:3, cat:'weak', full:"You don't have to worry about it.", ja:"心配する必要はありません。", spoken:"ユー ドンタフタ ウォリアバウティ", choices:["You don't have to worry about it.","You didn't have to worry about it.","You don't have a worry about it."], answer:0,
+ markers:[{type:'weak', text:"don't have to", note:"don't haveのtとhが連結し「ドンタフ」のように聞こえます。"},
+          {type:'link', text:'about it', note:"about itは子音+母音でつながり「アバウティ」となります。"}]},
+{level:3, cat:'elision', full:"He asked me to send it back.", ja:"彼は私にそれを返送するように頼みました。", spoken:"ヒー アスト ミー トゥ センディッ バック", choices:["He asked me to send it back.","He asked me to sending back.","He asked me to send a back."], answer:0,
+ markers:[{type:'elision', text:'send it', note:"send itのtは弱化し、語末のtが次のbの前で開放されず「センディッ」のように聞こえます。"}]},
+{level:3, cat:'weak', full:"It would have been better if we had left earlier.", ja:"もっと早く出発していればよかったのに。", spoken:"イット ウダ ビン ベラ", choices:["It would have been better if we had left earlier.","It would be better if we had left earlier.","It would have bin better if we had left it earlier."], answer:0,
+ markers:[{type:'weak', text:'would have', note:"would haveは「ウダ」のように縮約されます。仮定法でよく使われる音変化です。"},
+          {type:'elision', text:'better', note:"betterのttはフラップ音で「ベラ」のようになります。"}]},
+{level:3, cat:'link', full:"He's good at playing the guitar.", ja:"彼はギターを弾くのが得意です。", spoken:"ヒーズ グダット プレイイン ザ ギター", choices:["He's good at playing the guitar.","He's good add playing the guitar.","He's good at play the guitar."], answer:0,
+ markers:[{type:'link', text:'good at', note:"good atのdとaがつながり「グダット」のように聞こえます。be good atは頻出表現です。"}]},
+{level:3, cat:'weak', full:"I'd like to know what time the store opens.", ja:"その店が何時に開くか知りたいです。", spoken:"アイドゥ ライクトゥ ノウ ワッタイム ザ ストア オウプンズ", choices:["I'd like to know what time the store opens.","I'd like to know what time the store opened.","I'd like to know what time the store open."], answer:0,
+ markers:[{type:'weak', text:'like to', note:"like toは弱形で「ライクトゥ」のように軽く発音されます。"},
+          {type:'elision', text:'what time', note:"whatの語末tはtimeのtの前で脱落・融合し「ワッタイム」のように聞こえます。"}]},
+{level:3, cat:'elision', full:"He didn't seem to notice the difference.", ja:"彼はその違いに気づいていないようでした。", spoken:"ヒー ディドゥン シーム トゥ ノウティス ザ ディファレンス", choices:["He didn't seem to notice the difference.","He doesn't seem to notice the difference.","He didn't seem to notice a difference."], answer:0,
+ markers:[{type:'elision', text:"didn't seem", note:"didn'tの語末tはseemのsの前で脱落し「ディドゥン シーム」のように聞こえます。"}]},
+{level:3, cat:'link', full:"It's one of the most popular spots in the city.", ja:"それは市内で最も人気のある場所の一つです。", spoken:"イッツ ワノヴ ザ モウスト パピュラ スパッツィン ザ シティ", choices:["It's one of the most popular spots in the city.","It's one of the most popular spot in the city.","It's one of the most popular spots of the city."], answer:0,
+ markers:[{type:'link', text:'one of', note:"oneの語末nとofのoがつながり、ofも弱化して「ワノヴ」のように聞こえます。"},
+          {type:'link', text:'spots in', note:"spotsの語末sとinのiがつながり「スパッツィン」のようになります。"}]},
+{level:3, cat:'weak', full:"You should have told me earlier.", ja:"もっと早く私に言うべきでした。", spoken:"ユー シュダ トウルド ミー アーリア", choices:["You should have told me earlier.","You should tell me earlier.","You should have told me later."], answer:0,
+ markers:[{type:'weak', text:'should have', note:"should haveは「シュダ」のように縮約され、haveはほとんど発音されません。仮定法・後悔表現で頻出です。"}]},
+{level:3, cat:'elision', full:"I almost forgot about the meeting.", ja:"会議のことをほとんど忘れていました。", spoken:"アイ オールモウスト ファガッ アバウト ザ ミーティン", choices:["I almost forgot about the meeting.","I almost forget about the meeting.","I almost forgot of the meeting."], answer:0,
+ markers:[{type:'elision', text:'forgot about', note:"forgotの語末tはaboutのaの前で開放が弱まり「ファガッ アバウト」のように聞こえます。"}]},
+{level:3, cat:'link', full:"What time would be convenient for you?", ja:"何時が都合がいいですか?", spoken:"ワッタイム ウッビ コンヴィーニアント フォ ユー", choices:["What time would be convenient for you?","What time will be convenient for you?","What time would be convenient to you?"], answer:0,
+ markers:[{type:'elision', text:'what time', note:"whatの語末tとtimeのtが融合して「ワッタイム」のように聞こえます。"},
+          {type:'weak', text:'would be', note:"wouldの語末dが弱化してbeとつながり「ウッビ」のように聞こえます。"}]},
+{level:3, cat:'weak', full:"She might have left her umbrella on the train.", ja:"彼女は電車に傘を置き忘れたかもしれません。", spoken:"シー マイタヴ レフト ハ アンブレラ オン ザ トレイン", choices:["She might have left her umbrella on the train.","She might leave her umbrella on the train.","She might have left his umbrella on the train."], answer:0,
+ markers:[{type:'weak', text:'might have', note:"might haveは「マイタヴ」のように縮約されます。推量+完了形の典型的な音変化です。"}]},
+{level:3, cat:'elision', full:"We need to find out what happened.", ja:"何が起こったのかを調べる必要があります。", spoken:"ウィ ニードゥ トゥ ファインダウト ワッ ハプンド", choices:["We need to find out what happened.","We need to find out what happens.","We need to found out what happened."], answer:0,
+ markers:[{type:'link', text:'find out', note:"findの語末dとoutのoがつながり「ファインダウト」のように聞こえます。"},
+          {type:'elision', text:'what happened', note:"whatの語末tはhappenedのhの前で弱まり「ワッ ハプンド」のように聞こえます。"}]},
+{level:3, cat:'link', full:"He's not as busy as he used to be.", ja:"彼は以前ほど忙しくありません。", spoken:"ヒーズ ナラズ ビジィアズ ヒー ユーストゥ ビー", choices:["He's not as busy as he used to be.","He's not as busy as he uses to be.","He's not as busy as he used to do."], answer:0,
+ markers:[{type:'link', text:'not as', note:"notの語末tとasのaがつながり「ナラズ」のように聞こえます。"},
+          {type:'weak', text:'used to', note:"used toは「ユーストゥ」のように一塊に発音され、dの音がtに同化します。"}]},
+{level:3, cat:'weak', full:"It would be nice if we could meet sooner.", ja:"もっと早く会えたら良いのですが。", spoken:"イットゥ ビ ナイス イフ ウィ クッ ミート スーナ", choices:["It would be nice if we could meet sooner.","It would be nice if we can meet sooner.","It would be nice if we could meet soon."], answer:0,
+ markers:[{type:'weak', text:'would be', note:"wouldは弱形で「イットゥビ」のように軽く発音されます。仮定法の典型的なパターンです。"},
+          {type:'elision', text:'could meet', note:"couldの語末dはmeetのmの前で脱落し「クッ ミート」のように聞こえます。"}]},
+{level:3, cat:'elision', full:"I can't believe it's already noon.", ja:"もうお昼だなんて信じられません。", spoken:"アイ キャン ビリーヴ イッツ オールレディ ヌーン", choices:["I can't believe it's already noon.","I don't believe it's already noon.","I can't believe it's already noun."], answer:0,
+ markers:[{type:'elision', text:"can't believe", note:"can'tの語末tはbelieveのbの前で開放されず「キャン ビリーヴ」のように聞こえ、肯定形のcanと混同しやすくなります。"}]},
+{level:3, cat:'link', full:"There's a chance of rain later this afternoon.", ja:"今日の午後遅くに雨が降る可能性があります。", spoken:"ゼァザ チャンスァヴ レイン レイタ ディス アフタヌーン", choices:["There's a chance of rain later this afternoon.","There's a chance of rain later this morning.","There's a chance for rain later this afternoon."], answer:0,
+ markers:[{type:'link', text:"There's a", note:"There'sの語末zとaの母音がつながり「ゼァザ」のように聞こえます。"},
+          {type:'weak', text:'chance of', note:"chanceの語末sとofのoがつながり、ofも弱化して「チャンスァヴ」のようになります。"}]},
+{level:3, cat:'weak', full:"You don't have to decide right away.", ja:"今すぐ決める必要はありません。", spoken:"ユー ドンタフタ ディサイド ライタウェイ", choices:["You don't have to decide right away.","You didn't have to decide right away.","You don't have to decide right now."], answer:0,
+ markers:[{type:'weak', text:"don't have to", note:"don't haveのtとhが連結し「ドンタフ」のように聞こえます。"},
+          {type:'link', text:'right away', note:"rightの語末tとawayのaがつながり「ライタウェイ」のようになります。"}]},
+{level:3, cat:'elision', full:"They asked us to wait outside.", ja:"彼らは私たちに外で待つように頼みました。", spoken:"ゼイ アスタス トゥ ウェイト アウトサイド", choices:["They asked us to wait outside.","They asked us to wait inside.","They ask us to wait outside."], answer:0,
+ markers:[{type:'elision', text:'asked us', note:"askedの語末dはusのuの前で弱まり「アスタス」のように聞こえます。"}]},
+
+{level:4, cat:'link', full:"I would rather stay home than go out tonight.", ja:"今夜は外出するより家にいたいです。", spoken:"アイドゥ ラザ ステイ ホーム ザン ゴー アウト トゥナイト", choices:["I would rather stay home than go out tonight.","I'd rather stayed home than going out tonight.","I would rather stay home then going out tonight."], answer:0,
+ markers:[{type:'weak', text:'would rather', note:"would ratherは「アイドゥ ラザ」のように縮約されます。wouldのdとratherのrがつながり弱化します。"}]},
+{level:4, cat:'elision', full:"The government announced a new plan.", ja:"政府は新しい計画を発表しました。", spoken:"ザ ガヴァンメント アナウンスタ ニュー プラン", choices:["The government announced a new plan.","The government announce the new plan.","The government has announced a new plan."], answer:0,
+ markers:[{type:'elision', text:'announced a', note:"announced aのd+aがつながり、過去形のedの発音が弱まり「アナウンスタ」のように一塊になります。"}]},
+{level:4, cat:'weak', full:"I'm not sure if I'll be able to make it.", ja:"行けるかどうか分かりません。", spoken:"アイム ナッ シュア リフ アイル ビー エイブルトゥ メイキッ", choices:["I'm not sure if I'll be able to make it.","I'm not sure if I'd be able to make it.","I'm not sure if I'll be able to make a hit."], answer:0,
+ markers:[{type:'elision', text:'not sure', note:"not sureのtが脱落し「ナッ シュア」のように聞こえます。"},
+          {type:'link', text:"if I'll", note:"if I'llがつながり「リフ アイル」のように聞こえます。"},
+          {type:'link', text:'make it', note:"make itの語末tと次のitのiがつながり「メイキッ」のようになります。"}]},
+{level:4, cat:'link', full:"What do you think about it?", ja:"それについてどう思いますか?", spoken:"ワドゥヤ シンカバウティ", choices:["What do you think about it?","What did you think about it?","What do you think about that?"], answer:0,
+ markers:[{type:'weak', text:'do you', note:"What doは「ワドゥ」、do youは「ヤ」のように同化します。"},
+          {type:'link', text:'think about it', note:"think aboutのkとaboutのaがつながり「シンカバウト」となり、about itも連結します。"}]},
+{level:4, cat:'weak', full:"He must have forgotten about the meeting.", ja:"彼は会議のことを忘れてしまったに違いありません。", spoken:"ヒー マスタ ファガッン アバウト ザ ミーティン", choices:["He must have forgotten about the meeting.","He must forget about the meeting.","He must have forgot to the meeting."], answer:0,
+ markers:[{type:'weak', text:'must have', note:"must haveは「マスタ」のように縮約されます。"},
+          {type:'elision', text:'forgotten', note:"forgottenのttはフラップ音化し語尾のnと連結して「ファガッン」のように聞こえます。"}]},
+{level:4, cat:'elision', full:"I can't believe you forgot my birthday.", ja:"私の誕生日を忘れたなんて信じられません。", spoken:"アイ キャン ビリーヴ ユー ファガッ マイ バースデイ", choices:["I can't believe you forgot my birthday.","I can believe you forgot my birthday.","I can't believe you forget my birthday."], answer:0,
+ markers:[{type:'elision', text:"can't", note:"can'tの語末tは次のbの前で開放されず脱落し、can'tとcanが「キャン」と似た音になります。文脈と強勢で区別が必要です。"}]},
+{level:4, cat:'link', full:"I'd appreciate it if you could let me know in advance.", ja:"事前に知らせていただけるとありがたいです。", spoken:"アイダ プリーシエイティ リフ ユー クッ レッ ミー ノウ イナドヴァンス", choices:["I'd appreciate it if you could let me know in advance.","I'd appreciate it if you could let me know advance.","I'd appreciate it if you couldn't let me know in advance."], answer:0,
+ markers:[{type:'link', text:'appreciate it if', note:"appreciate itのtとitのi、it ifのtとiがそれぞれつながり「プリーシエイティリフ」のように一続きになります。"},
+          {type:'elision', text:'let me', note:"letの語末tはmeのmの前で開放されず「レッ ミー」のように聞こえます。"},
+          {type:'link', text:'in advance', note:"inのnとadvanceのaがつながり「イナドヴァンス」のようになります。"}]},
+{level:4, cat:'weak', full:"The data suggests that the trend will continue.", ja:"データはその傾向が続くことを示唆しています。", spoken:"ザ デイタ サジェスツザッ ザ トレンド ウィル コンティニュー", choices:["The data suggests that the trend will continue.","The data suggest that the trend will continue.","The data suggests that the trend won't continue."], answer:0,
+ markers:[{type:'elision', text:'suggests that', note:"suggestsの語末sとthatのthが連結し弱化して「サジェスツザッ」のように聞こえます。"}]},
+{level:4, cat:'link', full:"It took longer than we had expected.", ja:"私たちが予想していたよりも時間がかかりました。", spoken:"イット トゥック ロンガ ザン ウィ ハ ディクスペクティッド", choices:["It took longer than we had expected.","It takes longer than we had expected.","It took longer than we have expected."], answer:0,
+ markers:[{type:'weak', text:'had expected', note:"hadは弱形で「ハ」のように軽くなり、expectedのeとつながって「ディクスペクティッド」のように聞こえます。"}]},
+{level:4, cat:'elision', full:"He couldn't decide which one to choose.", ja:"彼はどちらを選ぶか決められませんでした。", spoken:"ヒー クドゥン ディサイド ウィッチ ワン トゥ チューズ", choices:["He couldn't decide which one to choose.","He could decide which one to choose.","He couldn't decide which one to choice."], answer:0,
+ markers:[{type:'elision', text:"couldn't decide", note:"couldn'tの語末tはdecideのdの前で脱落し「クドゥン ディサイド」のように聞こえます。"}]},
+{level:4, cat:'weak', full:"There seems to be a misunderstanding between them.", ja:"彼らの間に誤解があるようです。", spoken:"ゼァ シームズトゥビ ア ミスアンダスタンディン ビトゥイーン ゼム", choices:["There seems to be a misunderstanding between them.","There seemed to be a misunderstanding between them.","There seems to be a misunderstanding among them."], answer:0,
+ markers:[{type:'weak', text:'seems to be', note:"seems toとbeが弱形で連結し「シームズトゥビ」のように一塊で発音されます。"},
+          {type:'weak', text:'between them', note:"betweenのnとthemのthが弱まり連結し「ビトゥイーン ゼム」のようになります。"}]},
+{level:4, cat:'link', full:"What would happen if the plan failed?", ja:"その計画が失敗したらどうなりますか?", spoken:"ワッ ウッ ハプニフ ザ プラン フェイルド", choices:["What would happen if the plan failed?","What would happen if the plan fails?","What will happen if the plan failed?"], answer:0,
+ markers:[{type:'elision', text:'What would', note:"whatの語末tはwouldのwの前で弱まり「ワッ ウッ」のように聞こえます。"},
+          {type:'link', text:'happen if', note:"happenの語末nとifのiがつながり「ハプニフ」のように聞こえます。"}]},
+{level:4, cat:'weak', full:"I wonder if she's aware of the risk.", ja:"彼女がそのリスクを認識しているのか疑問です。", spoken:"アイ ワンダ リフ シーザウェアラヴ ザ リスク", choices:["I wonder if she's aware of the risk.","I wonder if she's aware off the risk.","I wonder if she was aware of the risk."], answer:0,
+ markers:[{type:'link', text:'wonder if', note:"wonderの語末rとifのiがつながり「ワンダリフ」のように聞こえます。"},
+          {type:'weak', text:'aware of', note:"awareの語末rとofのoがつながり、ofも弱化して「アウェアラヴ」のようになります。"}]},
+{level:4, cat:'elision', full:"The report was based on data collected last year.", ja:"その報告書は去年収集されたデータに基づいていました。", spoken:"ザ リポート ワズ ベイスタン デイタ コレクティッド ラスト イア", choices:["The report was based on data collected last year.","The report was based in data collected last year.","The report is based on data collected last year."], answer:0,
+ markers:[{type:'elision', text:'based on', note:"basedの語末dとonのoがつながり「ベイスタン」のように一塊で聞こえます。dとnの連結による弱化です。"}]},
+{level:4, cat:'link', full:"I'd like to make sure everyone understands the schedule.", ja:"全員がスケジュールを理解していることを確認したいです。", spoken:"アイドゥ ライクトゥ メイク シュア エヴリワン アンダスタンズ ザ スケジュール", choices:["I'd like to make sure everyone understands the schedule.","I'd like to make sure everyone understand the schedule.","I'd like to make sure anyone understands the schedule."], answer:0,
+ markers:[{type:'weak', text:'like to', note:"like toは弱形で「ライクトゥ」のように軽く発音されます。"},
+          {type:'link', text:'make sure', note:"makeの語末kとsureのsがつながり「メイク シュア」のように一続きに発音されます。"}]},
+{level:4, cat:'weak', full:"It's worth noting that the results vary by region.", ja:"結果が地域によって異なることは注目に値します。", spoken:"イッツ ワース ノウティンザッ ザ リザルツ ヴェアリ バイ リージョン", choices:["It's worth noting that the results vary by region.","It's worse noting that the results vary by region.","It's worth noting that the result vary by region."], answer:0,
+ markers:[{type:'elision', text:'noting that', note:"notingの語末gとthatのthが連結し弱化して「ノウティンザッ」のように聞こえます。"}]},
+{level:4, cat:'elision', full:"He admitted that he had made a mistake.", ja:"彼は自分が間違いをしたと認めました。", spoken:"ヒー アドゥミティッダッ ヒー ハドゥ メイダ ミステイク", choices:["He admitted that he had made a mistake.","He admitted that he has made a mistake.","He admitted that he had made the mistake."], answer:0,
+ markers:[{type:'elision', text:'admitted that', note:"admittedの語末dとthatのthが連結・弱化して「アドゥミティッダッ」のように聞こえます。"},
+          {type:'link', text:'made a', note:"madeの語末dとaの母音がつながり「メイダ」のようになります。"}]},
+{level:4, cat:'weak', full:"We should be able to finish it by Friday.", ja:"金曜日までにそれを終えられるはずです。", spoken:"ウィ シュッ ビ エイブルトゥ フィニシッ バイ フライディ", choices:["We should be able to finish it by Friday.","We should have been able to finish it by Friday.","We could be able to finish it by Friday."], answer:0,
+ markers:[{type:'elision', text:'should be', note:"shouldの語末dはbeのbの前で開放されず「シュッ ビ」のように聞こえます。"},
+          {type:'link', text:'finish it', note:"finishの語末shとitのiがつながり「フィニシッ」のように聞こえます。"}]},
+{level:4, cat:'link', full:"They're planning to expand into overseas markets.", ja:"彼らは海外市場への進出を計画しています。", spoken:"ゼア プラニントゥ イクスパンディントゥ オウヴァシーズ マーケッツ", choices:["They're planning to expand into overseas markets.","They're planning to expand in overseas markets.","They were planning to expand into overseas markets."], answer:0,
+ markers:[{type:'link', text:'expand into', note:"expandの語末dとintoのiがつながり「イクスパンディントゥ」のようになります。"}]},
+{level:4, cat:'weak', full:"I'm not sure what he meant by that comment.", ja:"彼があのコメントで何を意図していたのか分かりません。", spoken:"アイム ナッ シュア ワッ ヒー メント バイ ザット コメント", choices:["I'm not sure what he meant by that comment.","I'm not sure what he means by that comment.","I'm not sure what he meant about that comment."], answer:0,
+ markers:[{type:'elision', text:'not sure', note:"notの語末tが脱落し「ナッ シュア」のように聞こえます。"},
+          {type:'weak', text:'what he', note:"whatの語末tとheのhが弱化して連結し「ワッ ヒー」のように軽く発音されます。"}]},
+{level:4, cat:'elision', full:"The plan had to be changed at the last minute.", ja:"その計画は最後の瞬間に変更されなければなりませんでした。", spoken:"ザ プラン ハットゥビ チェインジダット ザ ラスト ミニット", choices:["The plan had to be changed at the last minute.","The plan has to be changed at the last minute.","The plan had to be changed in the last minute."], answer:0,
+ markers:[{type:'weak', text:'had to be', note:"hadは弱形で「ハットゥ」のように軽く、toとbeも連結して「ハットゥビ」のようになります。"},
+          {type:'link', text:'changed at', note:"changedの語末dとatのaがつながり「チェインジダット」のように聞こえます。"}]},
+
+{level:5, cat:'link', full:"If I had known about the change in schedule, I would have arrived earlier.", ja:"スケジュールの変更について知っていたら、もっと早く到着していたでしょう。", spoken:"イファイ ハドゥ ノウン アバウト ザ チェインジ イン スケジュール アイドゥ ハヴ アライヴド アーリア", choices:["If I had known about the change in schedule, I would have arrived earlier.","If I have known about the change of schedule, I would arrive earlier.","If I had known about the change in schedule, I would arrive it earlier."], answer:0,
+ markers:[{type:'link', text:'If I', note:"If Iは「イファイ」のようにつながります。"},
+          {type:'weak', text:'would have', note:"would haveは「アイドゥ ハヴ」のように接続します。仮定法過去完了の典型的な音連結パターンです。"}]},
+{level:5, cat:'weak', full:"The committee is supposed to make a decision by the end of the week.", ja:"委員会は今週中に決定を下すことになっています。", spoken:"ザ コミティ イズ サポウストゥ メイカ ディシジョン バイ ジ エンダヴ ザ ウィーク", choices:["The committee is supposed to make a decision by the end of the week.","The committee was supposed to make decisions by the end of the week.","The committee is supposed to make a decision by the end of this week."], answer:0,
+ markers:[{type:'weak', text:'is supposed to', note:"is supposed toは「イズ サポウストゥ」と一塊になります。"},
+          {type:'link', text:'make a', note:"make aは「メイカ」のように連結します。"},
+          {type:'weak', text:'end of the', note:"end ofは弱化したofとつながり「エンダヴ」のようになります。"}]},
+{level:5, cat:'elision', full:"Researchers found that the results didn't match their expectations.", ja:"研究者たちは、結果が予想と一致しなかったことを発見しました。", spoken:"リサーチャズ ファウンザッ ザ リザルツ ディドゥンッ マッチ ゼァ エクスペクテイションズ", choices:["Researchers found that the results didn't match their expectations.","Researchers found the results don't match their expectation.","Researchers found that the result didn't match the expectations."], answer:0,
+ markers:[{type:'elision', text:'found that', note:"found thatのdとthが連結して弱まり「ファウンザッ」のようになります。"},
+          {type:'elision', text:"didn't", note:"didn'tの語末tは次のmの前で脱落し「ディドゥンッ」となります。"}]},
+{level:5, cat:'link', full:"Despite the heavy rain, a large number of people turned out for the event.", ja:"大雨にもかかわらず、大勢の人々がそのイベントに集まりました。", spoken:"ディスパイトゥ ザ ヘヴィ レイン ア ラージ ナンバラヴ ピープル ターンダウト フォ ジ イヴェント", choices:["Despite the heavy rain, a large number of people turned out for the event.","Despite a heavy rain, a large amount of people turned out for the event.","Despite the heavy rain, a large number of people turned out at the event."], answer:0,
+ markers:[{type:'weak', text:'number of', note:"number ofは弱化して「ナンバラヴ」のように聞こえます。"},
+          {type:'link', text:'turned out', note:"turned outは語末dと母音のoがつながり「ターンダウト」となります。"},
+          {type:'weak', text:'for the', note:"for theは弱形でforがfərとなりthe eventと連結します。"}]},
+{level:5, cat:'weak', full:"It's been suggested that students should be given more opportunities to think for themselves.", ja:"生徒たちは自分で考えるための機会をもっと与えられるべきだと提案されています。", spoken:"イッツ ビン サジェスティッダッ ステューデンツ シュドゥ ビ ギヴン モア アポチュニティズ トゥ シンク フォ ゼムセルヴズ", choices:["It's been suggested that students should be given more opportunities to think for themselves.","It has suggested that students should give more opportunity to think for themselves.","It's been suggested that students should be given more opportunity to think by themselves."], answer:0,
+ markers:[{type:'weak', text:"It's been", note:"It's beenは「イッツ ビン」のように縮約・弱化します。"},
+          {type:'elision', text:'suggested that', note:"suggested thatのtt+th音が連結・弱化して「サジェスティッダッ」のようになります。"},
+          {type:'weak', text:'for themselves', note:"for themselvesのforは弱形fərになります。"}]},
+{level:5, cat:'link', full:"Although the plan sounded simple, it turned out to be more complicated than expected.", ja:"その計画は単純に思えましたが、実際には予想以上に複雑でした。", spoken:"オールゾウ ザ プラン サウンディッド シンプル イット ターンダウットゥビー モア コンプリケイティッド ザン エクスペクティッド", choices:["Although the plan sounded simple, it turned out to be more complicated than expected.","Although the plan sound simple, it turned out to be more complicated than expect.","Although the plan sounded simple, it turned out to more complicated than expected."], answer:0,
+ markers:[{type:'link', text:'turned out to be', note:"turned out to beはdとo、tとoがつながり「ターンダウットゥビー」のように一続きに聞こえます。"}]},
+{level:5, cat:'weak', full:"Many people assume that working longer hours automatically leads to higher productivity.", ja:"多くの人は、長時間働くことが自動的に生産性の向上につながると思い込んでいます。", spoken:"メニ ピープル アスームザッ ワーキン ロンガ アワーズ オートマティカリ リーズトゥ ハイア プロダクティヴィティ", choices:["Many people assume that working longer hours automatically leads to higher productivity.","Many people assumed that working longer hours automatically leads to higher productivity.","Many people assume that working longer hours automatically lead to higher productivity."], answer:0,
+ markers:[{type:'elision', text:'assume that', note:"assumeの語末mとthatのthが連結・弱化して「アスームザッ」のように聞こえます。"},
+          {type:'weak', text:'leads to', note:"leads toは弱形で「リーズトゥ」のように軽く発音されます。"}]},
+{level:5, cat:'elision', full:"The committee couldn't reach an agreement on how the budget should be allocated.", ja:"委員会は予算の配分方法について合意に達することができませんでした。", spoken:"ザ コミティ クドゥン リーチャン アグリーマント オン ハウ ザ バジェット シュッ ビ アロケイティッド", choices:["The committee couldn't reach an agreement on how the budget should be allocated.","The committee couldn't reach an agreement about how the budget should be allocated.","The committee couldn't reach the agreement on how the budget should be allocated."], answer:0,
+ markers:[{type:'elision', text:"couldn't reach", note:"couldn'tの語末tはreachのrの前で脱落し「クドゥン リーチ」のように聞こえます。"},
+          {type:'link', text:'reach an', note:"reachの語末chとanのaがつながり「リーチャン」のようになります。"}]},
+{level:5, cat:'link', full:"It's important to consider how the policy might affect people in different income groups.", ja:"その政策が異なる所得層の人々にどのような影響を与えるかを考えることが重要です。", spoken:"イッツ インポータントゥ コンシダ ハウ ザ ポリシ マイタフェクト ピープリン ディファラント インカム グループス", choices:["It's important to consider how the policy might affect people in different income groups.","It's important to consider how the policy might affect people of different income groups.","It's important to consider how the policy might effect people in different income groups."], answer:0,
+ markers:[{type:'weak', text:'might affect', note:"mightの語末tとaffectのaがつながり「マイタフェクト」のようになります。"},
+          {type:'link', text:'people in', note:"peopleの語末leとinのiがつながり「ピープリン」のように聞こえます。"}]},
+{level:5, cat:'weak', full:"It's been suggested that the rise in prices is mainly due to a shortage of supply.", ja:"価格の上昇は主に供給不足によるものだと指摘されています。", spoken:"イッツ ビン サジェスティッダッ ザ ライズィン プライセズ イズ メインリ デュートゥア ショーティッジ オヴ サプライ", choices:["It's been suggested that the rise in prices is mainly due to a shortage of supply.","It has suggested that the rise in prices is mainly due to a shortage of supply.","It's been suggested that the rise of prices is mainly due to a shortage of supply."], answer:0,
+ markers:[{type:'weak', text:"It's been", note:"It's beenは「イッツ ビン」のように縮約・弱化します。"},
+          {type:'elision', text:'suggested that', note:"suggestedの語末dとthatのthが連結・弱化して「サジェスティッダッ」のようになります。"},
+          {type:'weak', text:'due to a', note:"due toは弱形で「デュートゥ」、続くaも弱化して「デュートゥア」のように一塊になります。"}]},
+{level:5, cat:'link', full:"The study found that participants who exercised regularly reported higher levels of satisfaction.", ja:"その研究では、定期的に運動した参加者はより高い満足度を報告したことが分かりました。", spoken:"ザ スタディ ファウンザッ パーティシパンツ フー イクササイズド レギュラリ リポーティッド ハイア レヴェルズァヴ サティスファクション", choices:["The study found that participants who exercised regularly reported higher levels of satisfaction.","The study found that participants who exercise regularly reported higher levels of satisfaction.","The study found that participants who exercised regularly report higher levels of satisfaction."], answer:0,
+ markers:[{type:'elision', text:'found that', note:"foundの語末dとthatのthが連結して弱まり「ファウンザッ」のようになります。"},
+          {type:'weak', text:'levels of', note:"levelsの語末sとofのoがつながり、ofは弱化して「レヴェルズァヴ」のようになります。"}]},
+{level:5, cat:'weak', full:"There's no doubt that technology has changed the way we communicate with each other.", ja:"テクノロジーが私たちのコミュニケーションの方法を変えたことに疑いはありません。", spoken:"ゼァズ ノウ ダウトザッ テクノロジ ハズ チェインジド ザ ウェイ ウィ コミュニケイト ウィズ イーチャザー", choices:["There's no doubt that technology has changed the way we communicate with each other.","There's no doubt that technology has changed the ways we communicate with each other.","There's no doubt that technology had changed the way we communicate with each other."], answer:0,
+ markers:[{type:'elision', text:'doubt that', note:"doubtの語末tとthatのthが連結・弱化して「ダウトザッ」のように聞こえます。"},
+          {type:'link', text:'each other', note:"eachの語末chとotherのoがつながり「イーチャザー」のように聞こえます。"}]},
+{level:5, cat:'elision', full:"What surprised researchers most was that the effect lasted much longer than expected.", ja:"研究者たちが最も驚いたのは、その効果が予想よりはるかに長く続いたことでした。", spoken:"ワッ サプライズド リサーチャズ モウスト ワズザッ ジ エフェクト ラスティッド マッチ ロンガ ザン イクスペクティッド", choices:["What surprised researchers most was that the effect lasted much longer than expected.","What surprised researchers most was that the effect last much longer than expected.","What surprised researchers most is that the effect lasted much longer than expected."], answer:0,
+ markers:[{type:'elision', text:'What surprised', note:"whatの語末tはsurprisedのsの前で弱まり「ワッ サプライズド」のように聞こえます。"},
+          {type:'elision', text:'was that', note:"wasの語末sとthatのthが連結・弱化して「ワズザッ」のように聞こえます。"}]},
+{level:5, cat:'link', full:"Even though the project faced several setbacks, the team managed to complete it on time.", ja:"そのプロジェクトはいくつかの困難に直面しましたが、チームは時間通りに完成させることができました。", spoken:"イーヴン ゾウ ザ プロジェクト フェイスト セヴラル セットバックス ザ チーム マネジドゥトゥ コンプリーティ オン タイム", choices:["Even though the project faced several setbacks, the team managed to complete it on time.","Even though the project faced several setbacks, the team manages to complete it on time.","Even though the project faces several setbacks, the team managed to complete it on time."], answer:0,
+ markers:[{type:'link', text:'managed to', note:"managedの語末dとtoのtがつながり「マネジドゥトゥ」のように聞こえます。"},
+          {type:'link', text:'complete it', note:"completeの語末tとitのiがつながり「コンプリーティ」のように聞こえます。"}]},
+{level:5, cat:'weak', full:"The extent to which the policy will succeed depends largely on public support.", ja:"その政策がどの程度成功するかは、主に国民の支持にかかっています。", spoken:"ジ イクステント トゥ ウィッチ ザ ポリシ ウィル サクシード ディペンズ ラージリ オン パブリック サポート", choices:["The extent to which the policy will succeed depends largely on public support.","The extent of which the policy will succeed depends largely on public support.","The extent to which the policy will succeed depend largely on public support."], answer:0,
+ markers:[{type:'weak', text:'extent to which', note:"toは弱形で「トゥ」と軽く発音され、extentとwhichの間で目立たなくなります。"},
+          {type:'weak', text:'depends largely on', note:"depends onのような前置詞onは弱形でつながり、全体が滑らかに発音されます。"}]},
+{level:5, cat:'elision', full:"It was not until the final stage that the true scale of the problem became clear.", ja:"最終段階になってようやく、その問題の本当の規模が明らかになりました。", spoken:"イット ワズ ナティル ザ ファイナル ステイジ ザッ ザ トゥルー スケイル オヴ ザ プロブレム ビケイム クリア", choices:["It was not until the final stage that the true scale of the problem became clear.","It was not until the final stage when the true scale of the problem became clear.","It was not until the final stage that the true scale of the problem become clear."], answer:0,
+ markers:[{type:'link', text:'not until', note:"notの語末tとuntilのuがつながり「ナティル」のように聞こえます。"},
+          {type:'elision', text:'stage that', note:"stageの語末gとthatのthが連結・弱化して「ステイジザッ」のように聞こえます。"}]},
+{level:5, cat:'link', full:"Researchers are still trying to figure out exactly why this pattern occurs.", ja:"研究者たちは、なぜこのパターンが生じるのか正確な理由をまだ解明しようとしています。", spoken:"リサーチャズ ア スティル トライイントゥ フィギュア アウト イグザクトリ ワイ ディス パタン オカーズ", choices:["Researchers are still trying to figure out exactly why this pattern occurs.","Researchers were still trying to figure out exactly why this pattern occurs.","Researchers are still trying to figure out exactly why this pattern occur."], answer:0,
+ markers:[{type:'link', text:'figure out', note:"figureの語末rとoutのoがつながり「フィギュア アウト」のように一続きに聞こえます。"},
+          {type:'weak', text:'Researchers are', note:"areは弱形でほとんど聞こえず、Researchersとつながって一塊で発音されます。"}]},
+{level:5, cat:'weak', full:"A growing number of companies have started to offer more flexible working arrangements.", ja:"多くの企業がより柔軟な働き方の制度を導入し始めています。", spoken:"ア グロウイン ナンバラヴ カンパニーズ ハヴ スターティッドゥトゥ オファ モア フレキシブル ワーキン アレンジマンツ", choices:["A growing number of companies have started to offer more flexible working arrangements.","A growing number of companies has started to offer more flexible working arrangements.","A growing number of companies have started to offer more flexible working arrangement."], answer:0,
+ markers:[{type:'weak', text:'number of', note:"numberの語末rとofのoがつながり、ofは弱化して「ナンバラヴ」のように聞こえます。"},
+          {type:'link', text:'started to', note:"startedの語末dとtoのtがつながり「スターティッドゥトゥ」のように聞こえます。"}]},
+{level:5, cat:'elision', full:"It is widely believed that early intervention can reduce the long-term effects of the disorder.", ja:"早期介入がその障害の長期的な影響を減らすことができると広く信じられています。", spoken:"イティズ ワイドゥリ ビリーヴドザッ アーリ インターヴェンション キャン リデュース ザ ロングターム イフェクツァヴ ザ ディスオーダー", choices:["It is widely believed that early intervention can reduce the long-term effects of the disorder.","It was widely believed that early intervention can reduce the long-term effects of the disorder.","It is widely believed that early intervention can reduce the long-term effect of the disorder."], answer:0,
+ markers:[{type:'elision', text:'believed that', note:"believedの語末dとthatのthが連結・弱化して「ビリーヴドザッ」のように聞こえます。"},
+          {type:'weak', text:'effects of', note:"effectsの語末sとofのoがつながり、ofは弱化して「イフェクツァヴ」のようになります。"}]},
+{level:5, cat:'link', full:"The more carefully you plan ahead, the fewer problems you're likely to face later on.", ja:"事前にしっかり計画を立てるほど、後で問題に直面する可能性は少なくなります。", spoken:"ザ モア ケアフリ ユー プラナヘッド ザ フューア プロブレムズ ユア ライクリ トゥ フェイス レイタ オン", choices:["The more carefully you plan ahead, the fewer problems you're likely to face later on.","The more carefully you plan ahead, the fewest problems you're likely to face later on.","The more carefully you plan ahead, the fewer problem you're likely to face later on."], answer:0,
+ markers:[{type:'link', text:'plan ahead', note:"planの語末nとaheadのaがつながり「プラナヘッド」のように聞こえます。"},
+          {type:'weak', text:"you're likely to", note:"you'reは弱形でほとんど聞こえず、likely toと一塊で滑らかに発音されます。"}]},
+];
+
+const catInfo = {
+  link: {name:'① つなぎ(リンキング)', tag:'①', desc:"単語と単語がつながって発音される現象。子音+母音、d/t+yの破裂音化などが代表例です。"},
+  weak: {name:'② 弱音(弱形)', tag:'②', desc:"前置詞・代名詞・助動詞などの機能語が弱まり、シュワ(あいまい母音)になる現象です。"},
+  elision: {name:'③ 消える音(脱落)', tag:'③', desc:"特にt/dの音が、前後の子音にはさまれたり語末で開放されず聞こえなくなる現象です。"}
+};
+
+const STORAGE_KEY = 'listening_trainer_progress_v1';
+
+let state = {
+  level: 1,
+  score: 0,
+  total: 0,
+  streak: 0,
+  mistakes: {},
+  weaknessByCat: {link:{wrong:0,total:0}, weak:{wrong:0,total:0}, elision:{wrong:0,total:0}},
+  usedInLevel: []
+};
+
+let queue = [];
+let currentItem = null;
+let drillMode = false;
+let isRetry = false;
+let answered = false;
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('保存に失敗しました', e);
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+      if (!state.weaknessByCat) state.weaknessByCat = {link:{wrong:0,total:0}, weak:{wrong:0,total:0}, elision:{wrong:0,total:0}};
+      if (!state.mistakes) state.mistakes = {};
+      if (!state.usedInLevel) state.usedInLevel = [];
+    }
+  } catch (e) {
+    console.warn('読み込みに失敗しました', e);
+  }
+}
+
+function indexOf(item){ return bank.indexOf(item); }
+
+function buildQueueForLevel(lv) {
+  const pool = bank.filter(b => b.level === lv);
+  return shuffle([...pool]);
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function pickRetryItem(lv) {
+  const pool = bank.filter(b => b.level === lv);
+  const usedSet = new Set(state.usedInLevel);
+  const unused = pool.filter(b => !usedSet.has(indexOf(b)));
+  if (unused.length > 0) {
+    return unused[Math.floor(Math.random() * unused.length)];
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function pickNext() {
+  if (drillMode) {
+    const weakKeys = Object.keys(state.mistakes).filter(k => state.mistakes[k] > 0);
+    if (weakKeys.length === 0) {
+      drillMode = false;
+      document.getElementById('drillBanner').style.display = 'none';
+    } else {
+      const idx = parseInt(weakKeys[Math.floor(Math.random() * weakKeys.length)]);
+      return bank[idx];
+    }
+  }
+  if (isRetry) {
+    return pickRetryItem(state.level);
+  }
+  if (queue.length === 0) {
+    if (state.level < 5) state.level++;
+    queue = buildQueueForLevel(state.level);
+    state.usedInLevel = [];
+  }
+  return queue.shift();
+}
+
+function highlightSentence(item) {
+  const markersSorted = [...item.markers].sort((a,b) => b.text.length - a.text.length);
+  let result = item.full;
+  markersSorted.forEach((m, mi) => {
+    const tag = catInfo[m.type].tag;
+    const placeholderOpen = '%%OPEN' + mi + '%%';
+    const placeholderClose = '%%CLOSE' + mi + '%%';
+    const idx2 = result.indexOf(m.text);
+    if (idx2 >= 0) {
+      result = result.slice(0, idx2) + placeholderOpen + m.text + ' ' + tag + placeholderClose + result.slice(idx2 + m.text.length);
+    }
+  });
+  markersSorted.forEach((m, mi) => {
+    const cls = m.type === 'link' ? 'mark-link' : (m.type === 'weak' ? 'mark-weak' : 'mark-elision');
+    result = result.replace('%%OPEN' + mi + '%%', '<span class="' + cls + '">');
+    result = result.replace('%%CLOSE' + mi + '%%', '</span>');
+  });
+  return result;
+}
+
+function render() {
+  document.getElementById('levelLabel').textContent = LEVELS[state.level-1];
+  document.getElementById('streak').textContent = state.streak;
+  document.getElementById('retryBanner').style.display = isRetry ? 'flex' : 'none';
+  currentItem = pickNext();
+  if (!isRetry) state.usedInLevel.push(indexOf(currentItem));
+  answered = false;
+  document.getElementById('feedback').innerHTML = '';
+  document.getElementById('explainCard').style.display = 'none';
+
+  const ci = catInfo[currentItem.cat];
+  document.getElementById('intro').innerHTML = '<strong style="font-weight:500; color:var(--text);">' + ci.name + '</strong> &mdash; ' + ci.desc;
+
+  const poolSize = bank.filter(b => b.level === state.level).length;
+  document.getElementById('bankSize').textContent = poolSize;
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('total').textContent = state.total;
+
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  const order = shuffle([0,1,2]);
+  order.forEach(i => {
+    const btn = document.createElement('button');
+    btn.textContent = currentItem.choices[i];
+    btn.onclick = () => selectAnswer(i, btn);
+    choicesDiv.appendChild(btn);
+  });
+
+  saveState();
+}
+
+function selectAnswer(i, btn) {
+  if (answered) return;
+  answered = true;
+  state.total++;
+  const item = currentItem;
+  const key = indexOf(item);
+  const fb = document.getElementById('feedback');
+
+  state.weaknessByCat[item.cat].total++;
+
+  if (i === item.answer) {
+    state.score++;
+    state.streak++;
+    isRetry = false;
+    fb.innerHTML = '<span class="ok">正解です</span>';
+    btn.classList.add('correct');
+    if (state.mistakes[key] > 0) state.mistakes[key]--;
+  } else {
+    state.streak = 0;
+    isRetry = true;
+    state.weaknessByCat[item.cat].wrong++;
+    state.mistakes[key] = (state.mistakes[key] || 0) + 2;
+    fb.innerHTML = '<span class="ng">不正解 &mdash; 同じレベルの新しい問題に挑戦しましょう</span>';
+    btn.classList.add('incorrect');
+    const buttons = document.querySelectorAll('#choices button');
+    buttons.forEach(b => { if (b.textContent === item.choices[item.answer]) b.classList.add('correct'); });
+  }
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('total').textContent = state.total;
+  document.getElementById('streak').textContent = state.streak;
+
+  document.getElementById('explainSentence').innerHTML = highlightSentence(item);
+  document.getElementById('explainKana').textContent = '発音イメージ: ' + item.spoken;
+  document.getElementById('explainJa').textContent = '訳: ' + item.ja;
+
+  const notesDiv = document.getElementById('explainNotes');
+  notesDiv.innerHTML = '';
+  item.markers.forEach(m => {
+    const ci2 = catInfo[m.type];
+    const cls = m.type === 'link' ? 'note-link' : (m.type === 'weak' ? 'note-weak' : 'note-elision');
+    const div = document.createElement('div');
+    div.className = 'note-item ' + cls;
+    div.innerHTML = '<strong>' + ci2.tag + ' ' + ci2.name.replace(/^[①②③]\s*/,'') + ' (' + m.text + ')</strong><br>' + m.note;
+    notesDiv.appendChild(div);
+  });
+
+  document.getElementById('explainCard').style.display = 'block';
+  updateWeakPanel();
+  saveState();
+}
+
+function updateWeakPanel() {
+  const wc = document.getElementById('weakContent');
+  let html = '';
+  let anyData = false;
+  for (const cat of ['link','weak','elision']) {
+    const d = state.weaknessByCat[cat];
+    if (d.total === 0) continue;
+    anyData = true;
+    const rate = Math.round((d.wrong / d.total) * 100);
+    html += '<div style="margin-bottom:6px;"><strong style="font-weight:500; color:var(--text);">' + catInfo[cat].name + '</strong>: 誤答率 ' + rate + '% (' + d.wrong + '/' + d.total + ')</div>';
+  }
+  if (!anyData) html = '解答するとここに弱点が表示されます。';
+  const mistakeCount = Object.values(state.mistakes).filter(v => v > 0).length;
+  html += '<div style="margin-top:8px;">猛特訓キューに残っている問題: ' + mistakeCount + ' 問</div>';
+  wc.innerHTML = html;
+}
+
+function speak() {
+  if (!('speechSynthesis' in window)) {
+    alert('お使いのブラウザは音声読み上げに対応していません。');
+    return;
+  }
+  const utter = new SpeechSynthesisUtterance(currentItem.full);
+  utter.lang = 'en-US';
+  utter.rate = parseFloat(document.getElementById('speed').value);
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
+}
+
+document.getElementById('playbtn').addEventListener('click', speak);
+document.getElementById('nextbtn').addEventListener('click', render);
+document.getElementById('weakbtn').addEventListener('click', () => {
+  const p = document.getElementById('weakPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  updateWeakPanel();
+});
+document.getElementById('drillbtn').addEventListener('click', () => {
+  const weakKeys = Object.keys(state.mistakes).filter(k => state.mistakes[k] > 0);
+  if (weakKeys.length === 0) {
+    alert('まだ間違えた問題がありません。通常モードを進めてください。');
+    return;
+  }
+  drillMode = true;
+  isRetry = false;
+  document.getElementById('drillBanner').style.display = 'flex';
+  render();
+});
+document.getElementById('exitDrill').addEventListener('click', () => {
+  drillMode = false;
+  document.getElementById('drillBanner').style.display = 'none';
+  render();
+});
+document.getElementById('resetbtn').addEventListener('click', () => {
+  if (confirm('進捗(レベル・正解数・弱点記録)をすべてリセットします。よろしいですか?')) {
+    localStorage.removeItem(STORAGE_KEY);
+    state = {
+      level: 1,
+      score: 0,
+      total: 0,
+      streak: 0,
+      mistakes: {},
+      weaknessByCat: {link:{wrong:0,total:0}, weak:{wrong:0,total:0}, elision:{wrong:0,total:0}},
+      usedInLevel: []
+    };
+    drillMode = false;
+    isRetry = false;
+    document.getElementById('drillBanner').style.display = 'none';
+    queue = buildQueueForLevel(state.level);
+    render();
+  }
+});
+
+// 初期化
+loadState();
+queue = buildQueueForLevel(state.level);
+render();
+</script>
+</body>
+</html>
