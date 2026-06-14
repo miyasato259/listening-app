@@ -637,18 +637,10 @@ let isRetry = false;
 let answered = false;
 
 // 英語音声を確実に選択するための処理（iOSで日本語音声が使われてしまう問題への対策）
-let cachedVoices = [];
-let currentVoice = null;
-function loadVoices() {
-  cachedVoices = speechSynthesis.getVoices();
-  updateVoiceDebug();
-}
-if ('speechSynthesis' in window) {
-  loadVoices();
-  if ('onvoiceschanged' in speechSynthesis) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }
-}
+// ※ const宣言は、下の loadVoices() 呼び出しより前に置く必要がある
+//   （iOSのSafariはページ読み込み時に音声リストを即時に返すことがあり、
+//    その場合 loadVoices() がここで使う定数を先に参照してしまうため）
+
 // 共通テスト・TOEIC等で出題される、標準的な英語圏のアクセント
 const STANDARD_TEST_LOCALES = ['en-us', 'en-gb', 'en-au', 'en-ca'];
 // 漫画的・ロボット的な「ノベルティ音声」（試験対策には不向き）の名前
@@ -671,6 +663,21 @@ const NOVELTY_VOICE_NAMES = [
   'グランマ', 'グランパ', 'リード', 'ロッコ', 'サンディ', 'シェリー',
   '悪い知らせ', '良い知らせ', 'いい知らせ'
 ];
+// ユーザーが「声を選ぶ」パネルで選んだ音声名を保存するキー
+const VOICE_SELECTION_KEY = 'listening_trainer_voice_selection_v1';
+
+let cachedVoices = [];
+let currentVoice = null;
+function loadVoices() {
+  cachedVoices = speechSynthesis.getVoices();
+  updateVoiceDebug();
+}
+if ('speechSynthesis' in window) {
+  loadVoices();
+  if ('onvoiceschanged' in speechSynthesis) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+}
 // 利用可能な英語音声(en-*)を全部リストアップ（フィルタなし）
 function getAllEnglishVoices() {
   const voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
@@ -694,7 +701,6 @@ function getDefaultEnglishVoices() {
 }
 
 // ユーザーが「声を選ぶ」パネルで選んだ音声名を保存・読み込み
-const VOICE_SELECTION_KEY = 'listening_trainer_voice_selection_v1';
 function loadVoiceSelection() {
   try {
     const raw = localStorage.getItem(VOICE_SELECTION_KEY);
