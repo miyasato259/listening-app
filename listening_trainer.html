@@ -627,12 +627,24 @@ if ('speechSynthesis' in window) {
 // 共通テスト・TOEIC等で出題される、標準的な英語圏のアクセント
 const STANDARD_TEST_LOCALES = ['en-us', 'en-gb', 'en-au', 'en-ca'];
 // 漫画的・ロボット的な「ノベルティ音声」（試験対策には不向き）の名前
+// iPadが日本語環境だと、音声名が日本語で返ってくることがあるため、
+// 英語名・日本語名の両方を含めている
 const NOVELTY_VOICE_NAMES = [
+  // 英語名
   'albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos',
   'wobble', 'hysterical', 'organ', 'pipe organ', 'trinoids', 'whisper',
   'zarvox', 'good news', 'jester', 'superstar', 'junior', 'kathy',
   'ralph', 'princess', 'eddy', 'flo', 'grandma', 'grandpa', 'reed',
-  'rocko', 'sandy', 'shelley', 'eloquence'
+  'rocko', 'sandy', 'shelley', 'eloquence',
+  // 日本語のローカライズ名
+  'オルガン', 'パイプオルガン', 'ささやき声', 'ささやき',
+  '震え', 'わななき', 'トリノイド',
+  '道化', '道化師', 'ジェスター',
+  'アルバート', 'バー', 'ベル', 'ボイン', 'バブル', 'チェロ',
+  'ヒステリック', 'ザーボックス', 'スーパースター', 'ジュニア',
+  'キャシー', 'ラルフ', 'プリンセス', 'エディ', 'フロー',
+  'グランマ', 'グランパ', 'リード', 'ロッコ', 'サンディ', 'シェリー',
+  '悪い知らせ', '良い知らせ', 'いい知らせ'
 ];
 // 利用可能な英語音声(en-*)を全部リストアップし、
 // 試験対策に適した標準アクセント・通常の声だけに絞り込む
