@@ -624,10 +624,32 @@ if ('speechSynthesis' in window) {
     speechSynthesis.onvoiceschanged = loadVoices;
   }
 }
-// 利用可能な英語音声(en-*)を全部リストアップ
+// 共通テスト・TOEIC等で出題される、標準的な英語圏のアクセント
+const STANDARD_TEST_LOCALES = ['en-us', 'en-gb', 'en-au', 'en-ca'];
+// 漫画的・ロボット的な「ノベルティ音声」（試験対策には不向き）の名前
+const NOVELTY_VOICE_NAMES = [
+  'albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos',
+  'wobble', 'hysterical', 'organ', 'pipe organ', 'trinoids', 'whisper',
+  'zarvox', 'good news', 'jester', 'superstar', 'junior', 'kathy',
+  'ralph', 'princess', 'eddy', 'flo', 'grandma', 'grandpa', 'reed',
+  'rocko', 'sandy', 'shelley', 'eloquence'
+];
+// 利用可能な英語音声(en-*)を全部リストアップし、
+// 試験対策に適した標準アクセント・通常の声だけに絞り込む
 function getEnglishVoices() {
   const voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
-  return voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+  const allEnglish = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+
+  const filtered = allEnglish.filter(v => {
+    const lang = v.lang.toLowerCase();
+    const name = v.name.toLowerCase();
+    const isStandardLocale = STANDARD_TEST_LOCALES.includes(lang);
+    const isNovelty = NOVELTY_VOICE_NAMES.some(n => name.includes(n));
+    return isStandardLocale && !isNovelty;
+  });
+
+  // 絞り込んだ結果0件になった場合は、元のen-*リストにフォールバック
+  return filtered.length > 0 ? filtered : allEnglish;
 }
 // その中からランダムに1つ選ぶ（男性・女性・様々なアクセントが混在）
 function pickRandomEnglishVoice() {
