@@ -611,6 +611,7 @@ let answered = false;
 
 // 英語音声を確実に選択するための処理（iOSで日本語音声が使われてしまう問題への対策）
 let cachedVoices = [];
+let currentVoice = null;
 function loadVoices() {
   cachedVoices = speechSynthesis.getVoices();
 }
@@ -620,11 +621,16 @@ if ('speechSynthesis' in window) {
     speechSynthesis.onvoiceschanged = loadVoices;
   }
 }
-function pickEnglishVoice() {
+// 利用可能な英語音声(en-*)を全部リストアップ
+function getEnglishVoices() {
   const voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
-  return voices.find(v => v.lang === 'en-US')
-      || voices.find(v => v.lang && v.lang.startsWith('en'))
-      || null;
+  return voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+}
+// その中からランダムに1つ選ぶ（男性・女性・様々なアクセントが混在）
+function pickRandomEnglishVoice() {
+  const enVoices = getEnglishVoices();
+  if (enVoices.length === 0) return null;
+  return enVoices[Math.floor(Math.random() * enVoices.length)];
 }
 
 function saveState() {
@@ -721,6 +727,7 @@ function render() {
   document.getElementById('streak').textContent = state.streak;
   document.getElementById('retryBanner').style.display = isRetry ? 'flex' : 'none';
   currentItem = pickNext();
+  currentVoice = pickRandomEnglishVoice();
   if (!isRetry) state.usedInLevel.push(indexOf(currentItem));
   answered = false;
   document.getElementById('feedback').innerHTML = '';
@@ -823,9 +830,13 @@ function speak() {
   const utter = new SpeechSynthesisUtterance(currentItem.full);
   utter.lang = 'en-US';
 
-  const enVoice = pickEnglishVoice();
-  if (enVoice) {
-    utter.voice = enVoice;
+  // この問題用に選ばれた音声を使う（未設定ならここで選ぶ）
+  if (!currentVoice) {
+    currentVoice = pickRandomEnglishVoice();
+  }
+  if (currentVoice) {
+    utter.voice = currentVoice;
+    utter.lang = currentVoice.lang;
   }
 
   utter.rate = parseFloat(document.getElementById('speed').value);
