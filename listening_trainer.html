@@ -609,6 +609,24 @@ let drillMode = false;
 let isRetry = false;
 let answered = false;
 
+// 英語音声を確実に選択するための処理（iOSで日本語音声が使われてしまう問題への対策）
+let cachedVoices = [];
+function loadVoices() {
+  cachedVoices = speechSynthesis.getVoices();
+}
+if ('speechSynthesis' in window) {
+  loadVoices();
+  if ('onvoiceschanged' in speechSynthesis) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+}
+function pickEnglishVoice() {
+  const voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
+  return voices.find(v => v.lang === 'en-US')
+      || voices.find(v => v.lang && v.lang.startsWith('en'))
+      || null;
+}
+
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -804,6 +822,12 @@ function speak() {
   }
   const utter = new SpeechSynthesisUtterance(currentItem.full);
   utter.lang = 'en-US';
+
+  const enVoice = pickEnglishVoice();
+  if (enVoice) {
+    utter.voice = enVoice;
+  }
+
   utter.rate = parseFloat(document.getElementById('speed').value);
   speechSynthesis.cancel();
   speechSynthesis.speak(utter);
