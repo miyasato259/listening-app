@@ -274,6 +274,8 @@
     </select>
   </div>
 
+  <div id="voiceDebug" style="font-size:11px; color:var(--text-secondary); margin-top:4px;"></div>
+
   <div class="panel">
     <p style="font-size:13px; color:var(--text-secondary); margin:0 0 8px;">この音は何と聞こえましたか?選んでください</p>
     <div id="choices" class="choices"></div>
@@ -614,6 +616,7 @@ let cachedVoices = [];
 let currentVoice = null;
 function loadVoices() {
   cachedVoices = speechSynthesis.getVoices();
+  updateVoiceDebug();
 }
 if ('speechSynthesis' in window) {
   loadVoices();
@@ -631,6 +634,19 @@ function pickRandomEnglishVoice() {
   const enVoices = getEnglishVoices();
   if (enVoices.length === 0) return null;
   return enVoices[Math.floor(Math.random() * enVoices.length)];
+}
+// 現在使える英語音声の一覧と、選ばれている音声を画面に表示（デバッグ用）
+function updateVoiceDebug() {
+  const el = document.getElementById('voiceDebug');
+  if (!el) return;
+  const enVoices = getEnglishVoices();
+  if (enVoices.length === 0) {
+    el.textContent = '英語音声: 取得できていません（0個）';
+    return;
+  }
+  const names = enVoices.map(v => v.name + '(' + v.lang + ')').join(', ');
+  const current = currentVoice ? (currentVoice.name + '(' + currentVoice.lang + ')') : '未選択';
+  el.textContent = '英語音声 ' + enVoices.length + '個: ' + names + ' / 今回: ' + current;
 }
 
 function saveState() {
@@ -728,6 +744,7 @@ function render() {
   document.getElementById('retryBanner').style.display = isRetry ? 'flex' : 'none';
   currentItem = pickNext();
   currentVoice = pickRandomEnglishVoice();
+  updateVoiceDebug();
   if (!isRetry) state.usedInLevel.push(indexOf(currentItem));
   answered = false;
   document.getElementById('feedback').innerHTML = '';
@@ -838,6 +855,7 @@ function speak() {
     utter.voice = currentVoice;
     utter.lang = currentVoice.lang;
   }
+  updateVoiceDebug();
 
   utter.rate = parseFloat(document.getElementById('speed').value);
   speechSynthesis.cancel();
