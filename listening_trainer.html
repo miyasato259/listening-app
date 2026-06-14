@@ -154,6 +154,24 @@
     flex-wrap: wrap;
   }
 
+  .voice-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .voice-row:last-child { border-bottom: none; }
+  .voice-row label {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .voice-row button {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
   .choices {
     display: grid;
     gap: 8px;
@@ -245,12 +263,19 @@
     <div class="stat-pill"><span class="label">レベル</span><span class="val" id="levelLabel"></span></div>
     <div class="stat-pill"><span class="label">連続正解</span><span class="val" id="streak">0</span></div>
     <button id="weakbtn" class="icon-btn" style="margin-left:auto;">弱点分析</button>
+    <button id="voicebtn" class="icon-btn">声を選ぶ</button>
   </div>
 
   <div id="weakPanel" class="panel-secondary" style="display:none;">
     <p style="font-weight:500; margin:0 0 8px; color:var(--text);">弱点分析</p>
     <div id="weakContent"></div>
     <button id="drillbtn" class="icon-btn" style="margin-top:10px;">猛特訓モードで弱点を集中練習</button>
+  </div>
+
+  <div id="voicePanel" class="panel-secondary" style="display:none;">
+    <p style="font-weight:500; margin:0 0 4px; color:var(--text);">使う音声を選ぶ</p>
+    <p style="margin:0 0 8px;">チェックした音声の中からランダムに選ばれます。「試聴」で実際の声を確認できます。</p>
+    <div id="voiceList"></div>
   </div>
 
   <div id="drillBanner" class="banner banner-warning" style="display:none;">
@@ -646,11 +671,15 @@ const NOVELTY_VOICE_NAMES = [
   'グランマ', 'グランパ', 'リード', 'ロッコ', 'サンディ', 'シェリー',
   '悪い知らせ', '良い知らせ', 'いい知らせ'
 ];
-// 利用可能な英語音声(en-*)を全部リストアップし、
-// 試験対策に適した標準アクセント・通常の声だけに絞り込む
-function getEnglishVoices() {
+// 利用可能な英語音声(en-*)を全部リストアップ（フィルタなし）
+function getAllEnglishVoices() {
   const voices = cachedVoices.length ? cachedVoices : speechSynthesis.getVoices();
-  const allEnglish = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+  return voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+}
+// 試験対策に適した標準アクセント・通常の声に絞り込んだデフォルト一覧
+// （ユーザーが「声を選ぶ」でまだ何も選んでいない場合の初期状態として使う）
+function getDefaultEnglishVoices() {
+  const allEnglish = getAllEnglishVoices();
 
   const filtered = allEnglish.filter(v => {
     const lang = v.lang.toLowerCase();
@@ -662,6 +691,36 @@ function getEnglishVoices() {
 
   // 絞り込んだ結果0件になった場合は、元のen-*リストにフォールバック
   return filtered.length > 0 ? filtered : allEnglish;
+}
+
+// ユーザーが「声を選ぶ」パネルで選んだ音声名を保存・読み込み
+const VOICE_SELECTION_KEY = 'listening_trainer_voice_selection_v1';
+function loadVoiceSelection() {
+  try {
+    const raw = localStorage.getItem(VOICE_SELECTION_KEY);
+    if (!raw) return null;
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : null;
+  } catch (e) {
+    return null;
+  }
+}
+function saveVoiceSelection(names) {
+  try {
+    localStorage.setItem(VOICE_SELECTION_KEY, JSON.stringify(names));
+  } catch (e) {}
+}
+
+// 実際にランダム再生で使う音声一覧
+// ユーザーが選んだ音声があればそれを優先し、なければデフォルトの絞り込み結果を使う
+function getEnglishVoices() {
+  const all = getAllEnglishVoices();
+  const selection = loadVoiceSelection();
+  if (selection && selection.length > 0) {
+    const filtered = all.filter(v => selection.includes(v.name));
+    if (filtered.length > 0) return filtered;
+  }
+  return getDefaultEnglishVoices();
 }
 // その中からランダムに1つ選ぶ（男性・女性・様々なアクセントが混在）
 function pickRandomEnglishVoice() {
@@ -681,6 +740,72 @@ function updateVoiceDebug() {
   const names = enVoices.map(v => v.name + '(' + v.lang + ')').join(', ');
   const current = currentVoice ? (currentVoice.name + '(' + currentVoice.lang + ')') : '未選択';
   el.textContent = '英語音声 ' + enVoices.length + '個: ' + names + ' / 今回: ' + current;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 「声を選ぶ」パネルの中身を描画する
+function renderVoicePanel() {
+  const listEl = document.getElementById('voiceList');
+  if (!listEl) return;
+  const all = getAllEnglishVoices();
+  if (all.length === 0) {
+    listEl.innerHTML = '<p>英語の音声が見つかりません。iPadの設定 &gt; アクセシビリティ &gt; 読み上げコンテンツ &gt; 声、から英語の音声を追加してください。</p>';
+    return;
+  }
+
+  let selection = loadVoiceSelection();
+  if (!selection) {
+    selection = getDefaultEnglishVoices().map(v => v.name);
+  }
+
+  let html = '';
+  all.forEach((v, i) => {
+    const checked = selection.includes(v.name) ? 'checked' : '';
+    const id = 'voice_' + i;
+    html += '<div class="voice-row">'
+      + '<input type="checkbox" id="' + id + '" data-name="' + escapeHtml(v.name) + '" ' + checked + '>'
+      + '<label for="' + id + '">' + escapeHtml(v.name) + ' (' + escapeHtml(v.lang) + ')</label>'
+      + '<button type="button" class="icon-btn voice-test-btn" data-name="' + escapeHtml(v.name) + '">試聴</button>'
+      + '</div>';
+  });
+  listEl.innerHTML = html;
+
+  listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checkedNames = Array.from(listEl.querySelectorAll('input[type=checkbox]:checked')).map(c => c.dataset.name);
+      saveVoiceSelection(checkedNames);
+      currentVoice = null; // 次回再生時に選び直す
+      updateVoiceDebug();
+    });
+  });
+
+  listEl.querySelectorAll('.voice-test-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      playVoiceSample(btn.dataset.name);
+    });
+  });
+}
+
+// 指定した音声でサンプル文を再生する（試聴用）
+function playVoiceSample(voiceName) {
+  if (!('speechSynthesis' in window)) return;
+  const all = getAllEnglishVoices();
+  const voice = all.find(v => v.name === voiceName);
+  if (!voice) return;
+  const sample = 'This is a sample of this voice. Thank you for listening.';
+  const utter = new SpeechSynthesisUtterance(sample);
+  utter.voice = voice;
+  utter.lang = voice.lang;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
 }
 
 function saveState() {
@@ -902,6 +1027,14 @@ document.getElementById('weakbtn').addEventListener('click', () => {
   const p = document.getElementById('weakPanel');
   p.style.display = p.style.display === 'none' ? 'block' : 'none';
   updateWeakPanel();
+});
+document.getElementById('voicebtn').addEventListener('click', () => {
+  const p = document.getElementById('voicePanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') {
+    loadVoices();
+    renderVoicePanel();
+  }
 });
 document.getElementById('drillbtn').addEventListener('click', () => {
   const weakKeys = Object.keys(state.mistakes).filter(k => state.mistakes[k] > 0);
